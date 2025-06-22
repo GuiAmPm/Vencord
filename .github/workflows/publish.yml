@@ -7,7 +7,7 @@ on:
 jobs:
     Publish:
         if: github.repository == 'Vendicated/Vencord'
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
 
         steps:
             - uses: actions/checkout@v4
