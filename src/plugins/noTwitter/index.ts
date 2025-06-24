@@ -9,7 +9,8 @@ import definePlugin from "@utils/types";
 export default definePlugin({
     name: "No Twitter / No Stickers / No YTShorts / No Instagram",
     gui: true,
-    description: "Completely remove Twitter/Stickers/Shorts/Instagram messages",
+    description:
+        "Completely remove Twitter/Stickers/Shorts/Instagram/Tiktok/Twitch trash and replace with the poop emoji.",
     dependencies: ["MessageUpdaterAPI"],
     authors: [],
 
