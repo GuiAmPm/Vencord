@@ -28,6 +28,9 @@ import {
 } from "@webpack/common";
 import { Message, ReactionEmoji } from "discord-types/general";
 
+import { MOYAI_HD_B64 } from "./moyai_hd";
+import { MOYAI_SD_B64 } from "./moyai_sd";
+
 interface IMessageCreate {
     type: "MESSAGE_CREATE";
     optimistic: boolean;
@@ -56,10 +59,6 @@ interface IVoiceChannelEffectSendEvent {
 }
 
 const MOYAI = "🗿";
-const MOYAI_URL =
-    "https://raw.githubusercontent.com/MeguminSama/VencordPlugins/main/plugins/moyai/moyai.mp3";
-const MOYAI_URL_HD =
-    "https://raw.githubusercontent.com/MeguminSama/VencordPlugins/main/plugins/moyai/moyai_hd.wav";
 
 const settings = definePluginSettings({
     volume: {
@@ -96,6 +95,7 @@ const settings = definePluginSettings({
 
 export default definePlugin({
     name: "Moyai",
+    gui: true,
     authors: [Devs.Megu, Devs.Nuckyz],
     description: "🗿🗿🗿🗿🗿🗿🗿🗿",
     settings,
@@ -201,7 +201,7 @@ function boom() {
     const audioElement = document.createElement("audio");
 
     audioElement.src =
-        settings.store.quality === "HD" ? MOYAI_URL_HD : MOYAI_URL;
+        settings.store.quality === "HD" ? MOYAI_HD_B64 : MOYAI_SD_B64;
 
     audioElement.volume = settings.store.volume;
     audioElement.play();
