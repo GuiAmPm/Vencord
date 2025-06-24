@@ -45,9 +45,6 @@ export default definePlugin({
             return true;
         }
 
-        debugger;
-
-        console.log(JSON.stringify(item), "ALSO", []);
         return false;
     },
 });
