@@ -6,6 +6,7 @@
 
 import definePlugin from "@utils/types";
 
+// test
 export default definePlugin({
     name: "No Twitter / No Stickers / No YTShorts / No Instagram",
     gui: true,
