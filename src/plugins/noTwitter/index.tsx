@@ -52,7 +52,7 @@ export default definePlugin({
         }
 
         const mask =
-            /💩|(https:\/\/(www\.)?)?(((fixv)?x.com(\/(\w|\d)+\/status\/\d+)?)|((dd)?instagram.com(\/reel\/(\w|\d)+\/igsh=(\w|\d|=)+)?)|(youtube.com|youtu\.be)\/shorts\/(\w|\d)+)|(vx)?twitter\.com|twitch\.com|tiktok\.com(\/[@](\w|\d)+\/video\/\d+)?/gim;
+            /(?:^| +)(?:https?:\/\/)?(?:www\.)?(?:(?:fixv)?x\.com|twitter\.com|(?:dd)?instagram\.com|twitch\.com|reddit\.com|(?:youtube\.com|youtu\.be)\/shorts|tiktok.com)[^ \n$]*/gim;
 
         const originalTextMatches = mask.test(item.content);
 
