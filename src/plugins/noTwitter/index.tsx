@@ -68,7 +68,10 @@ export default definePlugin({
             return true;
         }
 
-        if (item.embeds && item.embeds.some((e) => mask.test(e.url))) {
+        if (
+            item.embeds &&
+            (originalTextMatches || item.embeds.some((e) => mask.test(e.url)))
+        ) {
             return true;
         }
 
