@@ -326,7 +326,6 @@ function PluginSettings() {
                         select={onStatusChange}
                         isSelected={(v) => v === searchValue.status}
                         closeOnSelect={true}
-                        className={InputStyles.input}
                     />
                 </div>
             </div>
