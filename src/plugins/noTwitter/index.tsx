@@ -7,9 +7,7 @@ import "./styles.css";
 
 import { get, set } from "@api/DataStore";
 import { updateMessage } from "@api/MessageUpdater";
-import { migratePluginSettings } from "@api/Settings";
 import { ImageInvisible, ImageVisible } from "@components/Icons";
-import { Devs } from "@utils/constants";
 import { classes } from "@utils/misc";
 import definePlugin from "@utils/types";
 import { ChannelStore } from "@webpack/common";
@@ -52,7 +50,7 @@ export default definePlugin({
         }
 
         const mask =
-            /(?:^| +)(?:https?:\/\/)?(?:www\.)?(?:(?:fixv)?x\.com|twitter\.com|(?:dd)?instagram\.com|twitch\.com|reddit\.com|(?:youtube\.com|youtu\.be)\/shorts|tiktok.com)[^ \n$]*/gim;
+            /(?:^| +)(?:https?:\/\/)?(?:www\.)?(?:(?:fixv)?x\.com|twitter\.com|(?:dd|kk)?instagram\.com|twitch\.com|reddit\.com|(?:youtube\.com|youtu\.be)\/shorts|tiktok.com)[^ \n$]*/gim;
 
         const originalTextMatches = mask.test(item.content);
 
