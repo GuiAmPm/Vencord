@@ -21,19 +21,35 @@ import "./styles.css";
 import * as DataStore from "@api/DataStore";
 import { useSettings } from "@api/Settings";
 import { classNameFactory } from "@api/Styles";
+import { Divider } from "@components/Divider";
+import ErrorBoundary from "@components/ErrorBoundary";
+import { HeadingTertiary } from "@components/Heading";
+import { Paragraph } from "@components/Paragraph";
 import { SettingsTab, wrapTab } from "@components/settings/tabs/BaseTab";
 import { ChangeList } from "@utils/ChangeList";
 import { Logger } from "@utils/Logger";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { useAwaiter, useCleanupEffect } from "@utils/react";
-import { findByPropsLazy } from "@webpack";
-import { Alerts, Button, Card, Forms, lodash, Parser, React, Select, Text, TextInput, Tooltip, useMemo, useState } from "@webpack/common";
+import {
+    Alerts,
+    Button,
+    Card,
+    lodash,
+    Parser,
+    React,
+    Select,
+    TextInput,
+    Tooltip,
+    useMemo,
+    useState,
+} from "@webpack/common";
 import { JSX } from "react";
 
 import Plugins, { ExcludedPlugins } from "~plugins";
 
 import { PluginCard } from "./PluginCard";
+import { findByPropsLazy } from "@webpack";
 
 export const cl = classNameFactory("vc-plugins-");
 export const logger = new Logger("PluginSettings", "#a6d189");
@@ -42,26 +58,34 @@ const InputStyles = findByPropsLazy("inputWrapper", "inputError", "error");
 
 function ReloadRequiredCard({ required }: { required: boolean }) {
     return (
-        <Card className={classes(cl("info-card"), required && "vc-warning-card")}>
-            {required
-                ? (
-                    <>
-                        <Forms.FormTitle tag="h5">Restart required!</Forms.FormTitle>
-                        <Forms.FormText className={cl("dep-text")}>
-                            Restart now to apply new plugins and their settings
-                        </Forms.FormText>
-                        <Button onClick={() => location.reload()} className={cl("restart-button")}>
-                            Restart
-                        </Button>
-                    </>
-                )
-                : (
-                    <>
-                        <Forms.FormTitle tag="h5">Plugin Management</Forms.FormTitle>
-                        <Forms.FormText>Press the cog wheel or info icon to get more info on a plugin</Forms.FormText>
-                        <Forms.FormText>Plugins with a cog wheel have settings you can modify!</Forms.FormText>
-                    </>
-                )}
+        <Card
+            className={classes(cl("info-card"), required && "vc-warning-card")}
+        >
+            {required ? (
+                <>
+                    <HeadingTertiary>Restart required!</HeadingTertiary>
+                    <Paragraph className={cl("dep-text")}>
+                        Restart now to apply new plugins and their settings
+                    </Paragraph>
+                    <Button
+                        onClick={() => location.reload()}
+                        className={cl("restart-button")}
+                    >
+                        Restart
+                    </Button>
+                </>
+            ) : (
+                <>
+                    <HeadingTertiary>Plugin Management</HeadingTertiary>
+                    <Paragraph>
+                        Press the cog wheel or info icon to get more info on a
+                        plugin
+                    </Paragraph>
+                    <Paragraph>
+                        Plugins with a cog wheel have settings you can modify!
+                    </Paragraph>
+                </>
+            )}
         </Card>
     );
 }
@@ -90,10 +114,10 @@ function ExcludedPluginsList({ search }: { search: string }) {
     };
 
     return (
-        <Text variant="text-md/normal" className={Margins.top16}>
+        <Paragraph className={Margins.top16}>
             {matchingExcludedPlugins.length ? (
                 <>
-                    <Forms.FormText>Are you looking for:</Forms.FormText>
+                    <Paragraph>Are you looking for:</Paragraph>
                     <ul>
                         {matchingExcludedPlugins.map(([name, reason]) => (
                             <li key={name}>
@@ -106,7 +130,7 @@ function ExcludedPluginsList({ search }: { search: string }) {
             ) : (
                 "No plugins meet the search criteria."
             )}
-        </Text>
+        </Paragraph>
     );
 }
 
@@ -121,17 +145,19 @@ function PluginSettings() {
                 body: (
                     <>
                         <p>The following plugins require a restart:</p>
-                        <div>{changes.map((s, i) => (
-                            <>
-                                {i > 0 && ", "}
-                                {Parser.parse("`" + s.split(".")[0] + "`")}
-                            </>
-                        ))}</div>
+                        <div>
+                            {changes.map((s, i) => (
+                                <>
+                                    {i > 0 && ", "}
+                                    {Parser.parse("`" + s.split(".")[0] + "`")}
+                                </>
+                            ))}
+                        </div>
                     </>
                 ),
                 confirmText: "Restart now",
                 cancelText: "Later!",
-                onConfirm: () => location.reload()
+                onConfirm: () => location.reload(),
             });
     }, []);
 
@@ -149,12 +175,16 @@ function PluginSettings() {
         return o;
     }, []);
 
-    const sortedPlugins = useMemo(() =>
-        Object.values(Plugins).sort((a, b) => a.name.localeCompare(b.name)),
-        []
+    const sortedPlugins = useMemo(
+        () =>
+            Object.values(Plugins).sort((a, b) => a.name.localeCompare(b.name)),
+        [],
     );
 
-    const [searchValue, setSearchValue] = useState({ value: "", status: SearchStatus.ALL });
+    const [searchValue, setSearchValue] = useState({
+        value: "",
+        status: SearchStatus.ALL,
+    });
 
     const search = searchValue.value.toLowerCase();
     const onSearch = (query: string) =>
@@ -265,7 +295,9 @@ function PluginSettings() {
                         <PluginCard
                             onMouseLeave={onMouseLeave}
                             onMouseEnter={onMouseEnter}
-                            onRestartNeeded={(name, key) => changes.handleChange(`${name}.${key}`)}
+                            onRestartNeeded={(name, key) =>
+                                changes.handleChange(`${name}.${key}`)
+                            }
                             disabled={true}
                             plugin={p}
                             key={p.name}
@@ -276,7 +308,9 @@ function PluginSettings() {
         } else {
             plugins.push(
                 <PluginCard
-                    onRestartNeeded={(name, key) => changes.handleChange(`${name}.${key}`)}
+                    onRestartNeeded={(name, key) =>
+                        changes.handleChange(`${name}.${key}`)
+                    }
                     disabled={false}
                     plugin={p}
                     isNew={newPlugins?.includes(p.name)}
@@ -290,93 +324,85 @@ function PluginSettings() {
         <SettingsTab title="Plugins">
             <ReloadRequiredCard required={changes.hasChanges} />
 
-            <Forms.FormTitle
-                tag="h5"
+            <HeadingTertiary
                 className={classes(Margins.top20, Margins.bottom8)}
             >
                 Filters
-            </Forms.FormTitle>
+            </HeadingTertiary>
 
             <div className={classes(Margins.bottom20, cl("filter-controls"))}>
-                <TextInput
-                    autoFocus
-                    value={searchValue.value}
-                    placeholder="Search for a plugin..."
-                    onChange={onSearch}
-                />
-                <div className={InputStyles.inputWrapper}>
-                    <Select
-                        options={[
-                            {
-                                label: "Show All",
-                                value: SearchStatus.ALL,
-                                default: true,
-                            },
-                            {
-                                label: "Show Enabled",
-                                value: SearchStatus.ENABLED,
-                            },
-                            {
-                                label: "Show Disabled",
-                                value: SearchStatus.DISABLED,
-                            },
-                            { label: "Show New", value: SearchStatus.NEW },
-                        ]}
-                        serialize={String}
-                        select={onStatusChange}
-                        isSelected={(v) => v === searchValue.status}
-                        closeOnSelect={true}
+                <ErrorBoundary noop>
+                    <TextInput
+                        autoFocus
+                        value={searchValue.value}
+                        placeholder="Search for a plugin..."
+                        onChange={onSearch}
                     />
+                </ErrorBoundary>
+                <div>
+                    <ErrorBoundary noop>
+                        <Select
+                            options={[
+                                {
+                                    label: "Show All",
+                                    value: SearchStatus.ALL,
+                                    default: true,
+                                },
+                                {
+                                    label: "Show Enabled",
+                                    value: SearchStatus.ENABLED,
+                                },
+                                {
+                                    label: "Show Disabled",
+                                    value: SearchStatus.DISABLED,
+                                },
+                                { label: "Show New", value: SearchStatus.NEW },
+                            ]}
+                            serialize={String}
+                            select={onStatusChange}
+                            isSelected={(v) => v === searchValue.status}
+                            closeOnSelect={true}
+                        />
+                    </ErrorBoundary>
                 </div>
             </div>
 
-            <Forms.FormTitle className={Margins.top20}>
-                Gui Plugins
-            </Forms.FormTitle>
+            <HeadingTertiary className={Margins.top20}>Plugins</HeadingTertiary>
 
             <div className={cl("grid")}>
                 {guiPlugins.length ? (
                     guiPlugins
                 ) : (
-                    <Text variant="text-md/normal">
-                        No plugins meet the search criteria.
-                    </Text>
+                    <Paragraph>No plugins meet the search criteria.</Paragraph>
                 )}
             </div>
 
-            <Forms.FormDivider className={Margins.top20} />
-
-            <Forms.FormTitle className={Margins.top20}>Plugins</Forms.FormTitle>
-
-            {plugins.length || requiredPlugins.length ? (
+            {plugins.length || requiredPlugins.length || guiPlugins.length ? (
                 <div className={cl("grid")}>
                     {plugins.length ? (
                         plugins
                     ) : (
-                        <Text variant="text-md/normal">
+                        <Paragraph>
                             No plugins meet the search criteria.
-                        </Text>
+                        </Paragraph>
                     )}
                 </div>
             ) : (
                 <ExcludedPluginsList search={search} />
             )}
 
-            <Forms.FormDivider className={Margins.top20} />
+            <Divider className={Margins.top20} />
 
-            <Forms.FormTitle
-                tag="h5"
+            <HeadingTertiary
                 className={classes(Margins.top20, Margins.bottom8)}
             >
                 Required Plugins
-            </Forms.FormTitle>
+            </HeadingTertiary>
             <div className={cl("grid")}>
                 {requiredPlugins.length ? (
                     requiredPlugins
                 ) : (
-                    <Text variant="text-md/normal">
-                        No plugins meet the search criteria.
-                    </Text>
+                    <Paragraph>No plugins meet the search criteria.</Paragraph>
                 )}
             </div>
         </SettingsTab>
@@ -386,8 +412,12 @@ function PluginSettings() {
 function makeDependencyList(deps: string[]) {
     return (
         <>
-            <Forms.FormText>This plugin is required by:</Forms.FormText>
-            {deps.map((dep: string) => <Forms.FormText key={dep} className={cl("dep-text")}>{dep}</Forms.FormText>)}
+            <Paragraph>This plugin is required by:</Paragraph>
+            {deps.map((dep: string) => (
+                <Paragraph key={dep} className={cl("dep-text")}>
+                    {dep}
+                </Paragraph>
+            ))}
         </>
     );
 }
