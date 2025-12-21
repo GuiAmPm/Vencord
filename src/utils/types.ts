@@ -17,17 +17,13 @@
  */
 
 import { ProfileBadge } from "@api/Badges";
-import { ChatBarButtonFactory } from "@api/ChatButtons";
+import { ChatBarButtonData } from "@api/ChatButtons";
 import { NavContextMenuPatchCallback } from "@api/ContextMenu";
 import { MemberListDecoratorFactory } from "@api/MemberListDecorators";
 import { MessageAccessoryFactory } from "@api/MessageAccessories";
 import { MessageDecorationFactory } from "@api/MessageDecorations";
-import {
-    MessageClickListener,
-    MessageEditListener,
-    MessageSendListener,
-} from "@api/MessageEvents";
-import { MessagePopoverButtonFactory } from "@api/MessagePopover";
+import { MessageClickListener, MessageEditListener, MessageSendListener } from "@api/MessageEvents";
+import { MessagePopoverButtonData } from "@api/MessagePopover";
 import { Command, FluxEvents } from "@vencord/discord-types";
 import { ReactNode } from "react";
 import { LiteralUnion } from "type-fest";
@@ -99,6 +95,8 @@ export interface Plugin extends PluginDef {
     isDependency?: boolean;
 }
 
+export type IconComponent = (props: IconProps & Record<string, any>) => ReactNode;
+export type IconProps = { height?: number | string; width?: number | string; className?: string; };
 export interface PluginDef {
     gui?: boolean;
     name: string;
@@ -129,6 +127,10 @@ export interface PluginDef {
      * Whether this plugin should be enabled by default, but can be disabled
      */
     enabledByDefault?: boolean;
+    /**
+     * Whether enabling or disabling this plugin requires a restart. Defaults to true if the plugin has patches.
+     */
+    requiresRestart?: boolean;
     /**
      * When to call the start() method
      * @default StartAt.WebpackReady
@@ -165,9 +167,16 @@ export interface PluginDef {
     contextMenus?: Record<string, NavContextMenuPatchCallback>;
     /**
      * Allows you to add custom actions to the Vencord Toolbox.
-     * The key will be used as text for the button
+     *
+     * Can either be an object mapping labels to action functions or a Function returning Menu components.
+     * Please note that you can only use Menu components.
+     *
+     * @example
+     * toolboxActions: {
+     *   "Click Me": () => alert("Hi")
+     * }
      */
-    toolboxActions?: Record<string, () => void>;
+    toolboxActions?: Record<string, () => void> | (() => ReactNode);
 
     tags?: string[];
 
@@ -178,17 +187,27 @@ export interface PluginDef {
 
     userProfileBadge?: ProfileBadge;
 
+    messagePopoverButton?: MessagePopoverButtonData;
+    chatBarButton?: ChatBarButtonData;
+
     onMessageClick?: MessageClickListener;
     onBeforeMessageSend?: MessageSendListener;
     onBeforeMessageEdit?: MessageEditListener;
 
-    renderMessagePopoverButton?: MessagePopoverButtonFactory;
     renderMessageAccessory?: MessageAccessoryFactory;
     renderMessageDecoration?: MessageDecorationFactory;
 
     renderMemberListDecorator?: MemberListDecoratorFactory;
 
-    renderChatBarButton?: ChatBarButtonFactory;
+    // TODO: Remove eventually
+    /**
+     * @deprecated Use {@link chatBarButton} instead
+     */
+    renderChatBarButton?: never;
+    /**
+     * @deprecated Use {@link messagePopoverButton} instead
+     */
+    renderMessagePopoverButton?: never;
 }
 
 export const enum StartAt {
@@ -225,24 +244,24 @@ export const enum OptionType {
 export type SettingsDefinition = Record<string, PluginSettingDef>;
 export type SettingsChecks<D extends SettingsDefinition> = {
     [K in keyof D]?: D[K] extends PluginSettingComponentDef
-        ? IsDisabled<DefinedSettings<D>>
-        : IsDisabled<DefinedSettings<D>> &
-              IsValid<PluginSettingType<D[K]>, DefinedSettings<D>>;
+    ? IsDisabled<DefinedSettings<D>>
+    : IsDisabled<DefinedSettings<D>> &
+    IsValid<PluginSettingType<D[K]>, DefinedSettings<D>>;
 };
 
 export type PluginSettingDef =
     | (PluginSettingCustomDef & Pick<PluginSettingCommon, "onChange">)
     | (PluginSettingComponentDef &
-          Omit<PluginSettingCommon, "description" | "placeholder">)
+        Omit<PluginSettingCommon, "description" | "placeholder">)
     | ((
-          | PluginSettingStringDef
-          | PluginSettingNumberDef
-          | PluginSettingBooleanDef
-          | PluginSettingSelectDef
-          | PluginSettingSliderDef
-          | PluginSettingBigIntDef
-      ) &
-          PluginSettingCommon);
+        | PluginSettingStringDef
+        | PluginSettingNumberDef
+        | PluginSettingBooleanDef
+        | PluginSettingSelectDef
+        | PluginSettingSliderDef
+        | PluginSettingBigIntDef
+    ) &
+        PluginSettingCommon);
 
 export interface PluginSettingCommon {
     description: string;
@@ -350,35 +369,35 @@ export interface PluginSettingComponentDef {
 /** Maps a `PluginSettingDef` to its value type */
 type PluginSettingType<O extends PluginSettingDef> =
     O extends PluginSettingStringDef
-        ? string
-        : O extends PluginSettingNumberDef
-          ? number
-          : O extends PluginSettingBigIntDef
-            ? BigInt
-            : O extends PluginSettingBooleanDef
-              ? boolean
-              : O extends PluginSettingSelectDef
-                ? O["options"][number]["value"]
-                : O extends PluginSettingSliderDef
-                  ? number
-                  : O extends PluginSettingComponentDef
-                    ? O extends { default: infer Default }
-                        ? Default
-                        : any
-                    : O extends PluginSettingCustomDef
-                      ? O extends { default: infer Default }
-                          ? Default
-                          : any
-                      : never;
+    ? string
+    : O extends PluginSettingNumberDef
+    ? number
+    : O extends PluginSettingBigIntDef
+    ? BigInt
+    : O extends PluginSettingBooleanDef
+    ? boolean
+    : O extends PluginSettingSelectDef
+    ? O["options"][number]["value"]
+    : O extends PluginSettingSliderDef
+    ? number
+    : O extends PluginSettingComponentDef
+    ? O extends { default: infer Default; }
+    ? Default
+    : any
+    : O extends PluginSettingCustomDef
+    ? O extends { default: infer Default; }
+    ? Default
+    : any
+    : never;
 
 type PluginSettingDefaultType<O extends PluginSettingDef> =
     O extends PluginSettingSelectDef
-        ? O["options"] extends { default?: boolean }[]
-            ? O["options"][number]["value"]
-            : undefined
-        : O extends { default: infer T }
-          ? T
-          : undefined;
+    ? O["options"] extends { default?: boolean; }[]
+    ? O["options"][number]["value"]
+    : undefined
+    : O extends { default: infer T; }
+    ? T
+    : undefined;
 
 type SettingsStore<D extends SettingsDefinition> = {
     [K in keyof D]: PluginSettingType<D[K]> | PluginSettingDefaultType<D[K]>;
@@ -418,8 +437,8 @@ export type PartialExcept<T, R extends keyof T> = Partial<T> &
     Required<Pick<T, R>>;
 
 export type IpcRes<V = any> =
-    | { ok: true; value: V }
-    | { ok: false; error: any };
+    | { ok: true; value: V; }
+    | { ok: false; error: any; };
 
 /* -------------------------------------------- */
 /*             Legacy Options Types             */
@@ -468,12 +487,14 @@ export type PluginNative<
         (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any
     >,
 > = {
-    [key in keyof PluginExports]: PluginExports[key] extends (
-        event: Electron.IpcMainInvokeEvent,
-        ...args: infer Args
-    ) => infer Return
+        [key in keyof PluginExports]: PluginExports[key] extends (
+            event: Electron.IpcMainInvokeEvent,
+            ...args: infer Args
+        ) => infer Return
         ? (
-              ...args: Args
-          ) => Return extends Promise<any> ? Return : Promise<Return>
+            ...args: Args
+        ) => Return extends Promise<any> ? Return : Promise<Return>
         : never;
-};
+    };
+
+export type AllOrNothing<T> = T | { [K in keyof T]?: never; };
