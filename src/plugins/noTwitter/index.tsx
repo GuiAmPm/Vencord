@@ -10,8 +10,8 @@ import { updateMessage } from "@api/MessageUpdater";
 import { ImageInvisible, ImageVisible } from "@components/Icons";
 import { classes } from "@utils/misc";
 import definePlugin from "@utils/types";
+import { Message, MessageSnapshot } from "@vencord/discord-types";
 import { ChannelStore } from "@webpack/common";
-import { MessageSnapshot } from "@webpack/types";
 
 const KEY = "HideAttachments_HiddenIds";
 
@@ -23,6 +23,20 @@ async function getHiddenMessages() {
 }
 
 const saveHiddenMessages = (ids: Set<string>) => set(KEY, ids);
+
+const hasMedia = (msg: Message) =>
+    msg.attachments.length > 0 ||
+    msg.embeds.length > 0 ||
+    msg.stickerItems.length > 0 ||
+    msg.components.length > 0;
+
+async function toggleHide(channelId: string, messageId: string) {
+    const ids = await getHiddenMessages();
+    if (!ids.delete(messageId)) ids.add(messageId);
+
+    await saveHiddenMessages(ids);
+    updateMessage(channelId, messageId);
+}
 
 export default definePlugin({
     name: "No Twitter / No Stickers / No YTShorts / No Instagram",
@@ -50,7 +64,7 @@ export default definePlugin({
         }
 
         const mask =
-            /(?:^| +)(?:https?:\/\/)?(?:www\.)?(?:(?:fixv)?x\.com|twitter\.com|(?:dd|kk)?instagram\.com|twitch\.com|reddit\.com|(?:youtube\.com|youtu\.be)\/shorts|tiktok.com)[^ \n$]*/gim;
+            /(?:^| +)(?:https?:\/\/)?(?:www\.)?(?:(?:fixv|fixup)?x\.com|twitter\.com|(?:dd|kk)?instagram\.com|twitch\.com|reddit\.com|(?:youtube\.com|youtu\.be)\/shorts|tiktok.com)[^ \n$]*/gim;
 
         const originalTextMatches = mask.test(item.content);
 
@@ -76,29 +90,31 @@ export default definePlugin({
         return false;
     },
 
-    renderMessagePopoverButton(msg) {
-        // @ts-ignore - discord-types lags behind discord.
-        const hasAttachmentsInShapshots = msg.messageSnapshots.some(
-            (snapshot: MessageSnapshot) => snapshot?.message.attachments.length,
-        );
+    messagePopoverButton: {
+        icon: ImageInvisible,
+        render(msg) {
+            const hasAttachmentsInShapshots = msg.messageSnapshots.some(
+                (snapshot: MessageSnapshot) => hasMedia(snapshot.message),
+            );
 
-        if (
-            !msg.attachments.length &&
-            !msg.embeds.length &&
-            !msg.stickerItems.length &&
-            !hasAttachmentsInShapshots
-        )
-            return null;
+            if (
+                !msg.attachments.length &&
+                !msg.embeds.length &&
+                !msg.stickerItems.length &&
+                !hasAttachmentsInShapshots
+            )
+                return null;
 
-        const isHidden = hiddenMessages.has(msg.id);
+            const isHidden = hiddenMessages.has(msg.id);
 
-        return {
-            label: isHidden ? "Show Media" : "Hide Media",
-            icon: isHidden ? ImageVisible : ImageInvisible,
-            message: msg,
-            channel: ChannelStore.getChannel(msg.channel_id),
-            onClick: () => this.toggleHide(msg.channel_id, msg.id),
-        };
+            return {
+                label: isHidden ? "Show Media" : "Hide Media",
+                icon: isHidden ? ImageVisible : ImageInvisible,
+                message: msg,
+                channel: ChannelStore.getChannel(msg.channel_id),
+                onClick: () => toggleHide(msg.channel_id, msg.id),
+            };
+        },
     },
 
     renderMessageAccessory({ message }) {

@@ -34,7 +34,18 @@ import { Logger } from "@utils/Logger";
 import { Margins } from "@utils/margins";
 import { classes } from "@utils/misc";
 import { useAwaiter, useCleanupEffect } from "@utils/react";
-import { Alerts, Button, lodash, Parser, React, Select, TextInput, Tooltip, useMemo, useState } from "@webpack/common";
+import {
+    Alerts,
+    Button,
+    lodash,
+    Parser,
+    React,
+    Select,
+    TextInput,
+    Tooltip,
+    useMemo,
+    useState,
+} from "@webpack/common";
 import { JSX } from "react";
 
 import Plugins, { ExcludedPlugins, PluginMeta } from "~plugins";
@@ -48,28 +59,37 @@ export const logger = new Logger("PluginSettings", "#a6d189");
 
 const InputStyles = findByPropsLazy("inputWrapper", "inputError", "error");
 
-function ReloadRequiredCard({ required }: { required: boolean; }) {
+function ReloadRequiredCard({ required }: { required: boolean }) {
     return (
-        <Card variant={required ? "warning" : "normal"} className={cl("info-card")}>
-            {required
-                ? (
-                    <>
-                        <HeadingTertiary>Restart required!</HeadingTertiary>
-                        <Paragraph className={cl("dep-text")}>
-                            Restart now to apply new plugins and their settings
-                        </Paragraph>
-                        <Button onClick={() => location.reload()} className={cl("restart-button")}>
-                            Restart
-                        </Button>
-                    </>
-                )
-                : (
-                    <>
-                        <HeadingTertiary>Plugin Management</HeadingTertiary>
-                        <Paragraph>Press the cog wheel or info icon to get more info on a plugin</Paragraph>
-                        <Paragraph>Plugins with a cog wheel have settings you can modify!</Paragraph>
-                    </>
-                )}
+        <Card
+            variant={required ? "warning" : "normal"}
+            className={cl("info-card")}
+        >
+            {required ? (
+                <>
+                    <HeadingTertiary>Restart required!</HeadingTertiary>
+                    <Paragraph className={cl("dep-text")}>
+                        Restart now to apply new plugins and their settings
+                    </Paragraph>
+                    <Button
+                        onClick={() => location.reload()}
+                        className={cl("restart-button")}
+                    >
+                        Restart
+                    </Button>
+                </>
+            ) : (
+                <>
+                    <HeadingTertiary>Plugin Management</HeadingTertiary>
+                    <Paragraph>
+                        Press the cog wheel or info icon to get more info on a
+                        plugin
+                    </Paragraph>
+                    <Paragraph>
+                        Plugins with a cog wheel have settings you can modify!
+                    </Paragraph>
+                </>
+            )}
         </Card>
     );
 }
@@ -80,13 +100,14 @@ const enum SearchStatus {
     DISABLED,
     NEW,
     USER_PLUGINS,
-    API_PLUGINS
+    API_PLUGINS,
 }
 
-function ExcludedPluginsList({ search }: { search: string; }) {
+function ExcludedPluginsList({ search }: { search: string }) {
     const matchingExcludedPlugins = search
-        ? Object.entries(ExcludedPlugins)
-            .filter(([name]) => name.toLowerCase().includes(search))
+        ? Object.entries(ExcludedPlugins).filter(([name]) =>
+              name.toLowerCase().includes(search),
+          )
         : [];
 
     const ExcludedReasons: Record<
@@ -168,7 +189,12 @@ function PluginSettings() {
         [],
     );
 
-    const hasUserPlugins = useMemo(() => !IS_STANDALONE && Object.values(PluginMeta).some(m => m.userPlugin), []);
+    const hasUserPlugins = useMemo(
+        () =>
+            !IS_STANDALONE &&
+            Object.values(PluginMeta).some((m) => m.userPlugin),
+        [],
+    );
 
     const [searchValue, setSearchValue] = useState({
         value: "",
@@ -279,10 +305,10 @@ function PluginSettings() {
                 p.required || !depMap[p.name]
                     ? "This plugin is required for Vencord to function."
                     : makeDependencyList(
-                        depMap[p.name]?.filter(
-                            (d) => settings.plugins[d].enabled,
-                        ),
-                    );
+                          depMap[p.name]?.filter(
+                              (d) => settings.plugins[d].enabled,
+                          ),
+                      );
 
             requiredPlugins.push(
                 <Tooltip text={tooltipText} key={p.name}>
@@ -318,15 +344,13 @@ function PluginSettings() {
     return (
         <SettingsTab>
             <ReloadRequiredCard required={changes.hasChanges} />
-
             <UIElementsButton />
-
             <UIElementsButton />
-
-            <HeadingTertiary className={classes(Margins.top20, Margins.bottom8)}>
+            <HeadingTertiary
+                className={classes(Margins.top20, Margins.bottom8)}
+            >
                 Filters
             </HeadingTertiary>
-
             <div className={classes(Margins.bottom20, cl("filter-controls"))}>
                 <ErrorBoundary noop>
                     <TextInput
@@ -340,12 +364,28 @@ function PluginSettings() {
                     <ErrorBoundary noop>
                         <Select
                             options={[
-                                { label: "Show All", value: SearchStatus.ALL, default: true },
-                                { label: "Show Enabled", value: SearchStatus.ENABLED },
-                                { label: "Show Disabled", value: SearchStatus.DISABLED },
+                                {
+                                    label: "Show All",
+                                    value: SearchStatus.ALL,
+                                    default: true,
+                                },
+                                {
+                                    label: "Show Enabled",
+                                    value: SearchStatus.ENABLED,
+                                },
+                                {
+                                    label: "Show Disabled",
+                                    value: SearchStatus.DISABLED,
+                                },
                                 { label: "Show New", value: SearchStatus.NEW },
-                                hasUserPlugins && { label: "Show UserPlugins", value: SearchStatus.USER_PLUGINS },
-                                { label: "Show API Plugins", value: SearchStatus.API_PLUGINS },
+                                hasUserPlugins && {
+                                    label: "Show UserPlugins",
+                                    value: SearchStatus.USER_PLUGINS,
+                                },
+                                {
+                                    label: "Show API Plugins",
+                                    value: SearchStatus.API_PLUGINS,
+                                },
                             ].filter(isTruthy)}
                             serialize={String}
                             select={onStatusChange}
@@ -355,9 +395,8 @@ function PluginSettings() {
                     </ErrorBoundary>
                 </div>
             </div>
-
             <HeadingTertiary className={Margins.top20}>Plugins</HeadingTertiary>
-
+            AAAA???
             <div className={cl("grid")}>
                 {guiPlugins.length ? (
                     guiPlugins
@@ -365,7 +404,6 @@ function PluginSettings() {
                     <Paragraph>No plugins meet the search criteria.</Paragraph>
                 )}
             </div>
-
             {plugins.length || requiredPlugins.length || guiPlugins.length ? (
                 <div className={cl("grid")}>
                     {plugins.length ? (
@@ -379,9 +417,7 @@ function PluginSettings() {
             ) : (
                 <ExcludedPluginsList search={search} />
             )}
-
             <Divider className={Margins.top20} />
-
             <HeadingTertiary
                 className={classes(Margins.top20, Margins.bottom8)}
             >
